@@ -5,6 +5,7 @@
 #include <TartsStrings.h>
 #include <ncurses.h>
 #include <jsoncpp/json/json.h>
+#include <ctime>
 
 #define GATEWAY_ID  "T5YC28"
 #define SENSOR_ID   "T5YFLY"
@@ -52,26 +53,44 @@ void SensorGatewayMessage_callback(const char* id, int stringID){
     if(stringID == 10) printf("ACTIVE - Channel: %d\n", Tarts.FindGateway(GATEWAY_ID)->getOperatingChannel());
 }
 
-void SensorMessage_callback(SensorMessage* msg){
-    std::string motion = "1";
-    printf("TARTS-SEN[%s]: RSSI: %d, dBm, Battery Voltage: %d.%02d VDC, Data: ", msg->ID, msg->RSSI, msg->BatteryVoltage/100, msg->BatteryVoltage%100);
-    bool detectedMotion = false;
 
-    for(int i=0; i< msg->DatumCount; i++){
-        if(i != 0) printf(" || ");
-        printf("%s | %s | %s", msg->DatumList[i].Name, msg->DatumList[i].Value, msg->DatumList[i].FormattedValue);
-        if (msg->DatumList[i].Value == motion) {
-          detectedMotion = true;
-          printf("BEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEP");
-          beep();
-        }
+const std::string Now() {
+    time_t    now = time(0);
+    struct tm tstruct;
+    char      buf[80];
+
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%Y-%m-%d %T", &tstruct);
+
+    return buf;
+}
+     
+
+void SensorMessage_callback(SensorMessage* msg){
+    bool detectedMotion = false;
+    int8_t signalStrength;
+    uint16_t batteryVoltage;
+    std::string timestamp = Now();
+
+    printf("TARTS-SEN[%s]: RSSI: %d, dBm, Battery Voltage: %d.%02d VDC, Data: ", msg->ID, msg->RSSI, msg->BatteryVoltage/100, msg->BatteryVoltage%100);
+
+    if (msg->DatumCount != 1) {
+        printf("Error: expected only 1 Datum point on sensor callback, but got %d.", msg->DatumCount);
+        return;
     }
-    printf("\n");
-    PrintSensorSettings(msg->ID);
+
+    detectedMotion = ! strcmp(msg->DatumList[0].Value, "1");
+    batteryVoltage = msg->BatteryVoltage;
+    signalStrength = msg->RSSI;
+
 
     Json::FastWriter fastWriter;
     Json::Value payload;
     payload["motion"] = detectedMotion;
+    payload["timestamp"] = timestamp;
+    payload["signalStrength"] = signalStrength;
+    payload["batteryVoltage"] = batteryVoltage;
+
     std::string message = fastWriter.write(payload);
     const char *cstr = message.c_str();
 
@@ -97,7 +116,8 @@ int SetupSensor() {
         printf("Registered sensor gateway.\n");
     }
 
-    if (!Tarts.RegisterSensor(GATEWAY_ID, TartsPassiveIR::Create(SENSOR_ID, 2, 102, 2, 2))) {
+    // TartsPassiveIR(const char* sensorID, uint16_t reportInterval, uint8_t linkInterval, uint8_t retryCount, uint8_t recovery);
+    if (!Tarts.RegisterSensor(GATEWAY_ID, TartsPassiveIR::Create(SENSOR_ID, 30, 102, 2, 2))) {
         Tarts.RemoveGateway(GATEWAY_ID);
         printf("TARTs Sensor Registration Failed!\n");
         return 2;
@@ -111,9 +131,9 @@ int SetupSensor() {
 void MosqMessage_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message)
 {
 	if(message->payloadlen){
-		printf("%s %s\n", message->topic, message->payload);
+	    printf("%s %s\n", message->topic, (char *)message->payload);
 	}else{
-		printf("%s (null)\n", message->topic);
+	    printf("%s (null)\n", message->topic);
 	}
 	fflush(stdout);
 }
