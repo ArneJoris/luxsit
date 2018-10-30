@@ -7,14 +7,14 @@ DEFS	= 	-DBB_BLACK_ARCH
 CFLAGS	= 	$(DEBUG) $(DEFS) -Wall $(INCLUDE) -pipe
 LDLIBS  = 	-L/usr/local/lib -lwiringBBB -lTarts -lpthread -lm -lrt 
 
-SRC	=	TartsMotionClient.cpp
+SRC	=	TartsGateway.cpp
 		
 OBJ	=	$(SRC:.cpp=.o)
 BINS	=	$(SRC:.cpp=)
 
 all:		$(OBJ) $(BINS)
 
-TartsMotionClient: TartsMotionClient.o
+TartsGateway: TartsGateway.o
 		@$(CC) -o $@ $< -lncurses -lmosquitto -ljsoncpp $(LDLIBS) 
 
 .cpp.o:		
@@ -27,3 +27,6 @@ clean:
 		@rm -f $(BINS)
 		@rm -f utils.o
 
+install:
+		cp TartsGateway.service /etc/systemd/system/
+		systemctl start TartsGateway

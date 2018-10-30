@@ -1,0 +1,13 @@
+[Unit]
+Description=Tarts sensor gateway service
+After=network.target
+
+[Service]
+Type=simple
+User=
+WorkingDirectory=/home/debian/luxsit
+ExecStart=/home/debian/luxsit/TartsGateway
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
