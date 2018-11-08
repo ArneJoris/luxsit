@@ -22,9 +22,6 @@
 
 struct mosquitto* mosquittoClient;
 
-char username[256] = "dunstable";
-char password[64] = "welcome";
-
 void SensorGatewayPersist_callback(const char* id){
     printf("TARTS-GWP[%s]\n", id);
     //Save Data about this gateway here.  This will all a user to store key values about the current gateway that could be used to resore back too after reset.
@@ -163,12 +160,10 @@ void MosqLog_callback(struct mosquitto *mosq, void *userdata, int level, const c
 }
 
 
-struct mosquitto* SetupMosquittoClient() {
+struct mosquitto* SetupMosquittoClient(char const* server, int port, char username[256], char password[256]) {
     static struct mosquitto *mosq = NULL;
 
     int iResult;
-    char const* host = "luxsit.solar.gy";
-    int port = 8083;
     int keepalive = 60;
     bool cleanSession = true;
 
@@ -185,7 +180,7 @@ struct mosquitto* SetupMosquittoClient() {
     mosquitto_tls_set(mosq, NULL, "/etc/ssl/certs", NULL, NULL,NULL);
     mosquitto_username_pw_set(mosq, username, password);
 
-    iResult = mosquitto_connect(mosq, host, port, keepalive);
+    iResult = mosquitto_connect(mosq, server, port, keepalive);
     if (iResult != MOSQ_ERR_SUCCESS) {
         printf("Unable to connect to broker. %s\n", mosquitto_strerror(iResult));
     }
@@ -197,11 +192,16 @@ struct mosquitto* SetupMosquittoClient() {
 
 
 int main(void){
+    Json::Value configuration;
+
+    std::ifstream configFile ("config.json", std::ifstream::binary);
+    configFile >> configuration;
+ 
     if(SetupSensor() != 0) {
         exit(1);
     }
 
-    mosquittoClient = SetupMosquittoClient();
+    mosquittoClient = SetupMosquittoClient("luxsit.solar.gy", 8083, "dunstable", "whatnow?");
     mosquitto_loop_start(mosquittoClient);
     
     while(1){

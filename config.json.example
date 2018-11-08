@@ -1,0 +1,15 @@
+{
+   "mqtt.py": {
+        "smsRecipient": "+17801234567",
+        "twilioPhoneNumber": "+178012345467",
+        "twilioAccountSid": "1234",
+        "twilioAuthToken": "5678",
+        "mqttUserName": "username",
+        "mqttPassword": "password",
+        "mqttServer": "server.com",
+        "mqttPort": 8083
+    },
+
+
+   "TartsGateway.cpp": { }
+}
