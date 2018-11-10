@@ -196,12 +196,18 @@ int main(void){
 
     std::ifstream configFile ("config.json", std::ifstream::binary);
     configFile >> configuration;
+    configuration = configuration["TartsGateway.cpp"];
  
     if(SetupSensor() != 0) {
         exit(1);
     }
 
-    mosquittoClient = SetupMosquittoClient("luxsit.solar.gy", 8083, "dunstable", "whatnow?");
+    const char * server = configuration["mqttServer"].asCString();
+    int port = configuration["mqttPort"].asInt();
+    char * username =(char *) configuration["mqttUserName"].asCString();
+    char * password = (char *)configuration["mqttPassword"].asCString();
+
+    mosquittoClient = SetupMosquittoClient(server, port, username, password);
     mosquitto_loop_start(mosquittoClient);
     
     while(1){
