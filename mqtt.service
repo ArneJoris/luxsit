@@ -1,0 +1,13 @@
+[Unit]
+Description=MQTT to SMS gateway
+After=network.target
+
+[Service]
+Type=simple
+User=
+WorkingDirectory=/home/arne/luxsit
+ExecStart=/home/arne/luxsit/mqtt.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

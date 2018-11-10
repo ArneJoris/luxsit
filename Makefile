@@ -27,6 +27,10 @@ clean:
 		@rm -f $(BINS)
 		@rm -f utils.o
 
-install:
+install TartsGateway:
 		cp TartsGateway.service /etc/systemd/system/
 		systemctl start TartsGateway
+
+install mqtt:
+		cp mqtt.service /etc/systemd/system
+		systemctl start mqtt
