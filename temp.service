@@ -1,0 +1,15 @@
+[Unit]
+Description=temperature to MQTT
+After=network.target
+
+[Service]
+Type=simple
+User=
+WorkingDirectory=/home/debian/luxsit
+ExecStart=/home/debian/luxsit/temp.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
