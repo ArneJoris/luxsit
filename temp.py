@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import time
+import socket
 import math
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_GPIO.I2C as I2C
@@ -23,25 +24,38 @@ def read_adc():
     data = ((data_list[0] & 0x0f) << 8 | data_list[1]) & 0xff
     return data
 
+
 def read_temperature(model = 'v1.2'):
     if model == 'v1.2':
-        bValue = 4250
+        B = 4275
     elif model == 'v1.1':
-        bValue = 4250
+        B = 4250
     else:
-        bValue = 3975
+        B = 3975
 
     total_value = 0
     for index in range(20):
         sensor_value = read_adc()
         total_value += sensor_value
-        time.sleep(0.05)
+        time.sleep(0.10)
     average_value = float(total_value / 20)
 
-    sensor_value_tmp = (float)(average_value / 4095 * 2.95 * 2 / 3.3 * 1023)
-    resistance = (float)(1023 - sensor_value_tmp) * 10000 / sensor_value_tmp
+    Vmeasured = 850 # Voltage measured with multi meter in mV
+    ADCreadingWhenMeasured = 245 # ADC reading when voltage was measured
+    ADCresolution = 2**12 # 12 bit ADC
 
-    temperature = round((float)(1 / (math.log(resistance / 10000) / bValue + 1 /298.15) - 273.15), 2)
+    R0 = 100000 # 100k ohm at 25 Celcius
+    T0 = 298.15 # Kelvin = 25 celcius
+    Vref = 3300 # beaglebone voltage to the ADC in mV
+
+    #fudgeFactor = ((ADCresolution - 1) * Vmeasured / Vref)
+    fudgeFactor = 7
+    voltage = (Vref * average_value * fudgeFactor ) / (ADCresolution - 1)
+    resistance = R0 * (( Vref / voltage) - 1.0)
+    print("value=%d, voltage=%02f mV, resistance = %02f ohm" %(average_value, voltage, resistance))
+
+    # Steinhart-Hart NTC equation for Celcius
+    temperature = round((float)(1.0 / (math.log(resistance / R0) / B + 1 / T0) - 273.15), 2)
     return temperature
 
 if __name__ == "__main__":
@@ -51,13 +65,25 @@ if __name__ == "__main__":
     client = paho.Client("luxsit temperature client")
     client.username_pw_set(config['mqttUserName'], config['mqttPassword'])
     client.tls_set()
-    client.connect(config["mqttServer"], config["mqttPort"], 60)
-    client.loop_start()
-    while True:
 
-            temperature = read_temperature('v1.2')
+    connected = False
+    while True:
+        if (not connected):
+            try:
+                client.connect(config["mqttServer"], config["mqttPort"], 60)
+                client.loop_start()
+                connected = True
+            except socket.gaierror:
+                connected = False
+
+        temperature = read_temperature('v1.2')
+        try:
             client.publish("generator/temperature", json.dumps({"temperature":temperature, "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}))
-            print("temperatur %02f" %temperature) 
-            time.sleep(60)
+        except socket.gaierror:
+            connected = False
+
+        print("temperature %02f" %temperature) 
+        time.sleep(60)
+
 
 
