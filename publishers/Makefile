@@ -15,18 +15,18 @@ BINS	=	$(SRC:.cpp=)
 all:		$(OBJ) $(BINS)
 
 TartsGateway: TartsGateway.o
-		@$(CC) -o $@ $< -lncurses -lmosquitto -ljsoncpp $(LDLIBS) 
+	$(CC) -o $@ $< -lncurses -lmosquitto -ljsoncpp $(LDLIBS) 
 
 .cpp.o:		
-		@echo [Compiling] $<
-		@$(CC) -c $(CFLAGS) $< -o $@
+	@echo [Compiling] $<
+	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:		
-		@echo "[Cleaning all example object and executable files]"
-		@rm -f $(OBJ)
-		@rm -f $(BINS)
-		@rm -f utils.o
-
-install TartsGateway:
-		cp TartsGateway.service /etc/systemd/system/
-		systemctl start TartsGateway
+	@echo "[Cleaning all example object and executable files]"
+	@rm -f $(OBJ)
+	@rm -f $(BINS)
+	@rm -f utils.o
+install:
+	cp TartsGateway.service /etc/systemd/system
+	systemctl daemon-reload
+	systemctl start TartsGateway
