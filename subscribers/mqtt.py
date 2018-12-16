@@ -29,7 +29,7 @@ def sendSMS(message):
                                  body = message,
                                  to = smsRecipient)
 
-with open('config.json') as configFile:
+with open('/home/debian/luxsit/config.json') as configFile:
     config = json.load(configFile)["mqtt.py"]
 
 smsRecipient = config["smsRecipient"]

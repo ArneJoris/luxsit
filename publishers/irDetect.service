@@ -1,0 +1,13 @@
+[Unit]
+Description= Long range Infrared detection
+After=network.target
+
+[Service]
+Type=simple
+User=
+WorkingDirectory=/home/debian/luxsit/publishers
+ExecStart=/home/debian/luxsit/publishers/irDetect.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

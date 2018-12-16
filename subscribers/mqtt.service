@@ -5,8 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=
-WorkingDirectory=/home/arne/luxsit
-ExecStart=/home/arne/luxsit/mqtt.py
+WorkingDirectory=/home/arne/luxsit/subscribers
+ExecStart=/home/arne/luxsit/subscribers/mqtt.py
 Restart=on-failure
 
 [Install]

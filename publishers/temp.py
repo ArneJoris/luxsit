@@ -59,7 +59,7 @@ def read_temperature(model = 'v1.2'):
     return temperature
 
 if __name__ == "__main__":
-    with open('config.json') as configFile:
+    with open('/home/debian/luxsit/config.json') as configFile:
         config = json.load(configFile)["mqtt.py"]
 
     client = paho.Client("luxsit temperature client")

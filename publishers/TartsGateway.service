@@ -5,8 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=
-WorkingDirectory=/home/debian/luxsit
-ExecStart=/home/debian/luxsit/TartsGateway
+WorkingDirectory=/home/debian/luxsit/publishers
+ExecStart=/home/debian/luxsit/publishers/TartsGateway
 Restart=on-failure
 
 [Install]

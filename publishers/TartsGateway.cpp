@@ -91,7 +91,7 @@ void SensorMessage_callback(SensorMessage* msg){
     std::string message = fastWriter.write(payload);
     const char *cstr = message.c_str();
 
-    mosquitto_publish(mosquittoClient, NULL, "/motion" , strlen(cstr), cstr, 0, false);
+    mosquitto_publish(mosquittoClient, NULL, "/greenhouse/motion" , strlen(cstr), cstr, 0, false);
 }
 
 void SensorLogException_callback(int stringID){
@@ -194,7 +194,7 @@ struct mosquitto* SetupMosquittoClient(char const* server, int port, char userna
 int main(void){
     Json::Value configuration;
 
-    std::ifstream configFile ("config.json", std::ifstream::binary);
+    std::ifstream configFile ("/home/debian/luxsit/config.json", std::ifstream::binary);
     configFile >> configuration;
     configuration = configuration["TartsGateway.cpp"];
  
