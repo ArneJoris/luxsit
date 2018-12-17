@@ -17,14 +17,13 @@ client.tls_set()
 client.connect(config["mqttServer"], config["mqttPort"], 60)
 
 while True:
-    value = ADC.read("P9_40")
-    voltage =  value * 1.8
+    motion = False
+    for index in range(20):
+        value = ADC.read("P9_40")
+        voltage = value * 1.8
+        if voltage > 1:
+            motion = True
+        time.sleep(0.50)
 
-    message = { "motion": False, "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") }
-
-    if voltage > 1:
-        message["motion"] = True
-
+    message = { "motion": motion, "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") }
     client.publish("/driveway/motion", json.dumps(message))
-
-    time.sleep(5)
