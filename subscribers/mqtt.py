@@ -6,16 +6,19 @@ import json
 
 def on_message(client, userdata, message):
     #  message.payload: {"batteryVoltage":293,"motion":false,"signalStrength":-39,"timestamp":"2018-11-04 14:20:07"}\n'
+    topic=message.topic
     payload = json.loads(message.payload.decode('utf-8'))
     if (payload["motion"]):
-        sendSMS("Motion in the greenhouse at " + payload["timestamp"])
+        sendSMS("Motion @ " + topic + " at " + payload["timestamp"])
     else:
-        print("NO MOTION at " + payload["timestamp"])
+        print("NO MOTION @ " + topic + " at " + payload["timestamp"])
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
-    result, mid = client.subscribe("/motion", qos=1)
-    print("subscribe to /motion " + str(result))
+    result, mid = client.subscribe("/driveway/motion", qos=1)
+    print("subscribe to /drivewway/motion " + str(result))
+    result, mid = client.subscribe("/greenhouse/motion", qos=1)
+    print("subscribe to /greenhouse/motion " + str(result))
 
 def on_disconnect(client, userdata, rc):
     print("Disconnect with result code " + str(rc))
@@ -29,7 +32,7 @@ def sendSMS(message):
                                  body = message,
                                  to = smsRecipient)
 
-with open('/home/debian/luxsit/config.json') as configFile:
+with open('/home/arne/luxsit/config.json') as configFile:
     config = json.load(configFile)["mqtt.py"]
 
 smsRecipient = config["smsRecipient"]
