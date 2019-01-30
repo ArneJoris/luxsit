@@ -2,14 +2,18 @@
 from twilio.rest import Client
 import paho.mqtt.client as paho
 import json
+import datetime
 
+lastSms = datetime.datetime.now()
 
 def on_message(client, userdata, message):
     #  message.payload: {"batteryVoltage":293,"motion":false,"signalStrength":-39,"timestamp":"2018-11-04 14:20:07"}\n'
     topic=message.topic
     payload = json.loads(message.payload.decode('utf-8'))
     if (payload["motion"]):
-        sendSMS("Motion @ " + topic + " at " + payload["timestamp"])
+        if ((datetime.datetime.now() - lastSms).total_seconds() > 300):
+            sendSMS("Motion @ " + topic + " at " + payload["timestamp"])
+            lastSms = datetime.datetime.now()
     else:
         print("NO MOTION @ " + topic + " at " + payload["timestamp"])
 
